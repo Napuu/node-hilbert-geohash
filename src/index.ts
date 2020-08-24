@@ -23,11 +23,40 @@ const xy2hash = (x: number, y: number, dim: number) => {
   return d
 }
 
+const hash2xy = (hashcode: number, dim: number) => {
+  let x = 0n
+  let y = 0n;
+  let lvl = 1n;
+  let big = BigInt(hashcode);
+  while (lvl < dim) {
+    let rx = 1n & (big >> 1n)
+    let ry = 1n & (big ^ rx)
+    const r = bigrotate(lvl, x, y, rx, ry)
+    x = r.x;
+    y = r.y;
+    x += lvl * rx;
+    y += lvl * ry;
+    big >>= 2n;
+    lvl <<= 1n;
+  }
+  return {x: Number(x), y: Number(y)}
+}
+
 const rotate = (n: number, x: number, y: number, rx: number, ry: number) => {
   if (ry == 0) {
     if (rx == 1) {
       x = n - 1 - x
       y = n - 1 - y
+    }
+    return {x: y, y: x}
+  }
+  return {x, y} 
+}
+const bigrotate = (dn: bigint, x: bigint, y: bigint, rx: bigint, ry: bigint) => {
+  if (ry === 0n) {
+    if (rx === 1n) {
+      x = dn - 1n - x
+      y = dn - 1n - y
     }
     return {x: y, y: x}
   }
@@ -97,6 +126,36 @@ const Base64 = {
 }
 const LAT_INTERVAL = [-90.0, 90.0]
 const LNG_INTERVAL = [-180.0, 180.0]
+
+const lvl_error = (level: number) => {
+  const err = 1 / (1 << level);
+  return {lng: 180 * err, lat: 90 * err};
+};
+
+const decode_exactly = (code: string, bits_per_char = 6) => {
+  let bits = code.length * bits_per_char;
+  console.log("bits", bits);
+  let level = bits >> 1;
+  console.log("level", level);
+  let dim = 1 << level;
+  console.log("dim", dim);
+  let code_int = decode_int(code, bits_per_char);
+  console.log("code_int", code_int);
+  const {x, y} = hash2xy(code_int, dim);
+  console.log("x, y", x, y);
+  const {lng, lat} = int2coord(x, y, dim);
+  console.log("lng, lat", lng, lat);
+  const err = lvl_error(level);
+  return {lng: lng + err.lng, lat: lat + err.lat, lng_err: err.lng, lat_err: err.lat};
+};
+
+
+const int2coord = (x: number, y: number, dim: number) => {
+  const lng = x / dim * 360 - 180;
+  const lat = y / dim * 180 - 90;
+  return {lng, lat}
+}
+
 const coord2int = (lng: number, lat: number, dim: number) => {
   const lat_y = (lat + LAT_INTERVAL[1]) / 180.0 * dim;
   const lng_x = (lng + LNG_INTERVAL[1]) / 360.0 * dim;
@@ -108,10 +167,18 @@ const encode_int = (n: number, bits_per_char = 6)  => {
   }
   return "";
 }
+const decode_int = (n: string, bits_per_char = 6)  => {
+  if (bits_per_char === 6) {
+    return decode_int64(n)
+  }
+  return 0;
+}
 const encode_int64 = (n: number) => {
   return (Base64.fromNumber(n));
 }
-
+const decode_int64 = (n: string) => {
+  return Base64.toNumber(n);
+}
 
 const encode = (lng: number, lat: number, precision = 10, bits_per_char = 6) => {
   let bits = precision * bits_per_char;
@@ -121,9 +188,10 @@ const encode = (lng: number, lat: number, precision = 10, bits_per_char = 6) => 
   const { x, y } = coord2int(lng, lat, dim)
   const code = xy2hash(x, y, dim);
   console.log(code);
-  return encode_int(code, bits_per_char)//.padStart(precision, '0');
+  return encode_int(code, bits_per_char).padStart(precision, '0');
 }
 
 console.log(encode(-4.200263151025215, 52.037478999999976, 8));
 console.log("??")
+console.log(decode_exactly("Z7fe2GaIVO"));
 console.log(encode(6.957036, 50.941291, 10));
