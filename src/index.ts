@@ -236,6 +236,34 @@ const neighbours = (code: string, bits_per_char=6) => {
   return neighbours;
 }
 
+const rectangle = (code: string, bits_per_char=6) => {
+  const {lng, lat, lng_err, lat_err} = decode_exactly(code, bits_per_char);
+  return {
+    type: "Feature",
+    properties: {
+      code,
+      lng,
+      lat,
+      lng_err,
+      lat_err,
+      bits_per_char
+    },
+    bbox: [lng - lng_err, lat - lat_err, lng + lng_err, lat + lat_err],
+    geometry: {
+      type: "Polygon",
+      coordinates: [
+        [
+          [lng - lng_err, lat - lat_err],
+          [lng + lng_err, lat - lat_err],
+          [lng + lng_err, lat + lat_err],
+          [lng - lng_err, lat + lat_err],
+          [lng - lng_err, lat - lat_err],
+        ]
+      ]
+    }
+  }
+}
+
 const encode = (lng: number, lat: number, precision = 10, bits_per_char = 6) => {
   let bits = precision * bits_per_char;
   let level = bits >> 1;
@@ -256,3 +284,4 @@ console.log(decode_exactly("210013223222002101212103200000", 2));
 console.log(decode_exactly("907AEA0919", 4));
 console.log(decode_exactly("VCid7b", 6));
 console.log(neighbours("Z7fe2G"));
+console.log(JSON.stringify(rectangle("Z7fe2G", 6)));
