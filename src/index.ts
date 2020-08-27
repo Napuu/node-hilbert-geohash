@@ -264,6 +264,24 @@ const rectangle = (code: string, bits_per_char=6) => {
   }
 }
 
+const hilbert_curve = (precision: number, bits_per_char=6) => {
+  const bits = precision * bits_per_char;
+  const coordinates: [number, number][] = []; 
+  for (let i = 0; i < 1 << bits; i++) {
+    const code = encode_int(i, bits_per_char).padStart(precision, '0');
+    const {lng, lat, lng_err, lat_err} = decode_exactly(code, bits_per_char);
+    coordinates.push([lng, lat]);
+  }
+  return {
+    type: "Feature",
+    properties: {},
+    geometry: {
+      type: "LineString",
+      coordinates
+    }
+  }
+}
+
 const encode = (lng: number, lat: number, precision = 10, bits_per_char = 6) => {
   let bits = precision * bits_per_char;
   let level = bits >> 1;
@@ -274,14 +292,3 @@ const encode = (lng: number, lat: number, precision = 10, bits_per_char = 6) => 
   return encode_int(code, bits_per_char).padStart(precision, '0');
 }
 
-console.log(encode(-4.200263151025215, 52.037478999999976, 8));
-console.log("??")
-console.log(decode_exactly("Z7fe2GaIVO"));
-console.log(encode(6.957036, 50.941291, 10, 6));
-console.log(encode(6.957036, 50.941291, 10, 4));
-console.log(encode(6.957036, 50.941291, 30, 2));
-console.log(decode_exactly("210013223222002101212103200000", 2));
-console.log(decode_exactly("907AEA0919", 4));
-console.log(decode_exactly("VCid7b", 6));
-console.log(neighbours("Z7fe2G"));
-console.log(JSON.stringify(rectangle("Z7fe2G", 6)));
