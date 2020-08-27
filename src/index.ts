@@ -297,3 +297,10 @@ const encode = (lng: number, lat: number, precision = 10, bits_per_char = 6) => 
   return encode_int(code, bits_per_char).padStart(precision, '0');
 }
 
+export {
+  encode,
+  decode,
+  decode_exactly,
+  neighbours,
+  hilbert_curve
+}
