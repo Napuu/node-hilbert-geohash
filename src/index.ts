@@ -63,12 +63,19 @@ const bigrotate = (dn: bigint, x: bigint, y: bigint, rx: bigint, ry: bigint) => 
   return {x, y} 
 }
 
-const Base64 = {
+type BaseNumber = 64 | 16 | 4
+type Base = "Base64" | "Base16" | "Base4"
+
+const IntConversion = {
   // https://stackoverflow.com/questions/6213227/fastest-way-to-convert-a-number-to-radix-64-in-javascript
-    _Rixits :
+    Base64 :
 //   0       8       16      24      32      40      48      56     63
 //   v       v       v       v       v       v       v       v      v
     "0123456789@ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz",
+    Base16:
+    "0123456789ABCDEF",
+    Base4:
+    "0123",
     // You have the freedom, here, to choose the glyphs you want for 
     // representing your base-64 numbers. The ASCII encoding guys usually
     // choose a set of glyphs beginning with ABCD..., but, looking at
@@ -83,7 +90,7 @@ const Base64 = {
     // or going with base-64 representations for the bit pattern of the
     // underlying IEEE floating-point number, or representing the mantissae
     // and exponents separately, or some other possibility. For now, bail
-    fromNumber : function(number) {
+    fromNumber : function(number: number, base: BaseNumber) {
         if (isNaN(Number(number)) || number === null ||
             number === Number.POSITIVE_INFINITY)
             throw "The input is not valid";
@@ -94,13 +101,13 @@ const Base64 = {
         var residual = Math.floor(number);
         var result = '';
         while (true) {
-            rixit = residual % 64
+            rixit = residual % base
             // console.log("rixit : " + rixit);
             // console.log("result before : " + result);
-            result = this._Rixits.charAt(rixit) + result;
+            result = this[("Base" + base) as Base].charAt(rixit) + result;
             // console.log("result after : " + result);
             // console.log("residual before : " + residual);
-            residual = Math.floor(residual / 64);
+            residual = Math.floor(residual / base);
             // console.log("residual after : " + residual);
 
             if (residual == 0)
@@ -109,16 +116,16 @@ const Base64 = {
         return result;
     },
 
-    toNumber : function(rixits) {
+    toNumber : function(_rixits: string, base: BaseNumber) {
         var result = 0;
         // console.log("rixits : " + rixits);
         // console.log("rixits.split('') : " + rixits.split(''));
-        rixits = rixits.split('');
+        let rixits = _rixits.split('');
         for (var e = 0; e < rixits.length; e++) {
-            // console.log("_Rixits.indexOf(" + rixits[e] + ") : " + 
-                // this._Rixits.indexOf(rixits[e]));
+            // console.log("Base64.indexOf(" + rixits[e] + ") : " + 
+                // this.Base64.indexOf(rixits[e]));
             // console.log("result before : " + result);
-            result = (result * 64) + this._Rixits.indexOf(rixits[e]);
+            result = (result * base) + this[("Base" + base) as Base].indexOf(rixits[e]);
             // console.log("result after : " + result);
         }
         return result;
@@ -134,17 +141,11 @@ const lvl_error = (level: number) => {
 
 const decode_exactly = (code: string, bits_per_char = 6) => {
   let bits = code.length * bits_per_char;
-  console.log("bits", bits);
   let level = bits >> 1;
-  console.log("level", level);
   let dim = 1 << level;
-  console.log("dim", dim);
   let code_int = decode_int(code, bits_per_char);
-  console.log("code_int", code_int);
   const {x, y} = hash2xy(code_int, dim);
-  console.log("x, y", x, y);
   const {lng, lat} = int2coord(x, y, dim);
-  console.log("lng, lat", lng, lat);
   const err = lvl_error(level);
   return {lng: lng + err.lng, lat: lat + err.lat, lng_err: err.lng, lat_err: err.lat};
 };
@@ -165,19 +166,43 @@ const encode_int = (n: number, bits_per_char = 6)  => {
   if (bits_per_char === 6) {
     return encode_int64(n)
   }
+  if (bits_per_char === 4) {
+    return encode_int16(n)
+  }
+  if (bits_per_char === 2) {
+    return encode_int4(n)
+  }
   return "";
 }
 const decode_int = (n: string, bits_per_char = 6)  => {
   if (bits_per_char === 6) {
     return decode_int64(n)
   }
+  if (bits_per_char === 4) {
+    return decode_int16(n)
+  }
+  if (bits_per_char === 2) {
+    return decode_int4(n)
+  }
   return 0;
 }
 const encode_int64 = (n: number) => {
-  return (Base64.fromNumber(n));
+  return (IntConversion.fromNumber(n, 64));
+}
+const encode_int16 = (n: number) => {
+  return (IntConversion.fromNumber(n, 16));
+}
+const encode_int4 = (n: number) => {
+  return (IntConversion.fromNumber(n, 4));
 }
 const decode_int64 = (n: string) => {
-  return Base64.toNumber(n);
+  return IntConversion.toNumber(n, 64);
+}
+const decode_int16 = (n: string) => {
+  return IntConversion.toNumber(n, 16);
+}
+const decode_int4 = (n: string) => {
+  return IntConversion.toNumber(n, 4);
 }
 
 const encode = (lng: number, lat: number, precision = 10, bits_per_char = 6) => {
@@ -187,11 +212,14 @@ const encode = (lng: number, lat: number, precision = 10, bits_per_char = 6) => 
 
   const { x, y } = coord2int(lng, lat, dim)
   const code = xy2hash(x, y, dim);
-  console.log(code);
   return encode_int(code, bits_per_char).padStart(precision, '0');
 }
 
 console.log(encode(-4.200263151025215, 52.037478999999976, 8));
 console.log("??")
 console.log(decode_exactly("Z7fe2GaIVO"));
-console.log(encode(6.957036, 50.941291, 10));
+console.log(encode(6.957036, 50.941291, 10, 6));
+console.log(encode(6.957036, 50.941291, 10, 4));
+console.log(encode(6.957036, 50.941291, 30, 2));
+console.log(decode_exactly("210013223222002101212103200000", 2));
+console.log(decode_exactly("907AEA0919", 4));
