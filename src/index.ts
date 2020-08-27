@@ -205,6 +205,37 @@ const decode_int4 = (n: string) => {
   return IntConversion.toNumber(n, 4);
 }
 
+const neighbours = (code: string, bits_per_char=6) => {
+  const {lng, lat, lng_err, lat_err} = decode_exactly(code, bits_per_char);
+  const precision = code.length;
+  let north = lat + 2 * lat_err;
+  let south = lat - 2 * lat_err;
+
+  let east = lng + 2 * lng_err;
+  if (east > 180) east -= 360;
+
+  let west = lng - 2 * lng_err;
+  if (west < -180) west += 360;
+
+  const neighbours: {east: string, west: string, north?: string, south?: string,
+    "north-east"?: string, "north-west"?: string, "south-east"?: string, "south-west"?: string } = {
+    east: encode(east, lat, precision, bits_per_char),
+    west: encode(west, lat, precision, bits_per_char),
+  }
+
+  if (north <= 90) {
+    neighbours["north"] = encode(lng, north, precision, bits_per_char);
+    neighbours["north-east"] = encode(east, north, precision, bits_per_char);
+    neighbours["north-west"] = encode(west, north, precision, bits_per_char);
+  }
+  if (south >= -90) {
+    neighbours["south"] = encode(lng, south, precision, bits_per_char);
+    neighbours["south-east"] = encode(east, south, precision, bits_per_char);
+    neighbours["south-west"] = encode(west, south, precision, bits_per_char);
+  }
+  return neighbours;
+}
+
 const encode = (lng: number, lat: number, precision = 10, bits_per_char = 6) => {
   let bits = precision * bits_per_char;
   let level = bits >> 1;
@@ -223,3 +254,5 @@ console.log(encode(6.957036, 50.941291, 10, 4));
 console.log(encode(6.957036, 50.941291, 30, 2));
 console.log(decode_exactly("210013223222002101212103200000", 2));
 console.log(decode_exactly("907AEA0919", 4));
+console.log(decode_exactly("VCid7b", 6));
+console.log(neighbours("Z7fe2G"));
