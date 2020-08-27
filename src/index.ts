@@ -150,6 +150,11 @@ const decode_exactly = (code: string, bits_per_char = 6) => {
   return {lng: lng + err.lng, lat: lat + err.lat, lng_err: err.lng, lat_err: err.lat};
 };
 
+const decode = (code: string, bits_per_char = 6) => {
+  const {lng, lat, lng_err, lat_err} = decode_exactly(code, bits_per_char);
+  return {lng, lat}
+}
+
 
 const int2coord = (x: number, y: number, dim: number) => {
   const lng = x / dim * 360 - 180;
