@@ -53,17 +53,12 @@ const rotate = (n: number, x: number, y: number, rx: number, ry: number) => {
   }
   return { x, y };
 };
-const bigrotate = (
-  dn: bigint,
-  x: bigint,
-  y: bigint,
-  rx: bigint,
-  ry: bigint
-) => {
+
+const bigrotate = (n: bigint, x: bigint, y: bigint, rx: bigint, ry: bigint) => {
   if (ry === 0n) {
     if (rx === 1n) {
-      x = dn - 1n - x;
-      y = dn - 1n - y;
+      x = n - 1n - x;
+      y = n - 1n - y;
     }
     return { x: y, y: x };
   }
