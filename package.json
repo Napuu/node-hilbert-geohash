@@ -5,9 +5,12 @@
   "main": "./lib/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc"
+    "build": "tsc",
+    "lint": "node ./node_modules/prettier"
   },
-  "files": ["lib/**/*"],
+  "files": [
+    "lib/**/*"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/napuu/node-hilbert-geohash.git"
@@ -24,6 +27,8 @@
   },
   "homepage": "https://github.com/napuu/node-hilbert-geohash#readme",
   "devDependencies": {
+    "@types/node": "^14.6.2",
+    "prettier": "^2.1.1",
     "typescript": "^4.0.2"
   }
 }
