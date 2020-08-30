@@ -1,7 +1,6 @@
 type BaseNumber = 64 | 16 | 4;
 type Base = "Base64" | "Base16" | "Base4";
 
-
 const IntConversion = {
   // https://stackoverflow.com/questions/6213227/fastest-way-to-convert-a-number-to-radix-64-in-javascript
   Base64:
@@ -26,11 +25,11 @@ const IntConversion = {
   // and exponents separately, or some other possibility. For now, bail
   fromNumber: function (number: bigint, base: BaseNumber) {
     //if (
-      //isNaN(Number(number)) ||
-      //number == null ||
-      //number == Number.POSITIVE_INFINITY
+    //isNaN(Number(number)) ||
+    //number == null ||
+    //number == Number.POSITIVE_INFINITY
     //)
-      //throw "The input is not valid";
+    //throw "The input is not valid";
     if (number < 0n) throw "Can't represent negative numbers now";
 
     var rixit; // like 'digit', only in some non-decimal radix
@@ -50,7 +49,9 @@ const IntConversion = {
     var result = 0n;
     let chars = string.split("");
     for (var e = 0; e < chars.length; e++) {
-      result = result * BigInt(base) + BigInt(this[("Base" + base) as Base].indexOf(chars[e]));
+      result =
+        result * BigInt(base) +
+        BigInt(this[("Base" + base) as Base].indexOf(chars[e]));
     }
     return result;
   },
