@@ -6,6 +6,7 @@
     "rootDir": "./src",
     "strict": true,
     "noUnusedLocals": true,
+    "declaration": true,
     "noUnusedParameters": true
   }
 }
