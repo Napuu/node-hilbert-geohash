@@ -1,4 +1,5 @@
 const { encode_int, decode_int } = require("./conversion");
+const assert = require("assert");
 
 const xy2hash = (x: bigint, y: bigint, dim: number) => {
   let d = 0n;
@@ -54,6 +55,7 @@ const lvl_error = (level: number) => {
 };
 
 const decode_exactly = (code: string, bits_per_char = 6) => {
+  isCorrectBpc(bits_per_char);
   let bits = code.length * bits_per_char;
   isOverflowing(bits);
   let level = BigInt(bits) >> 1n;
@@ -71,6 +73,7 @@ const decode_exactly = (code: string, bits_per_char = 6) => {
 };
 
 const decode = (code: string, bits_per_char = 6) => {
+  isCorrectBpc(bits_per_char);
   const { lng, lat } = decode_exactly(code, bits_per_char);
   return { lng, lat };
 };
@@ -91,6 +94,7 @@ const coord2int = (lng: number, lat: number, dim: number) => {
 };
 
 const neighbours = (code: string, bits_per_char = 6) => {
+  isCorrectBpc(bits_per_char);
   const { lng, lat, lng_err, lat_err } = decode_exactly(code, bits_per_char);
   const precision = code.length;
   let north = lat + 2 * lat_err;
@@ -130,6 +134,7 @@ const neighbours = (code: string, bits_per_char = 6) => {
 };
 
 const rectangle = (code: string, bits_per_char = 6) => {
+  isCorrectBpc(bits_per_char);
   const { lng, lat, lng_err, lat_err } = decode_exactly(code, bits_per_char);
   return {
     type: "Feature",
@@ -158,11 +163,8 @@ const rectangle = (code: string, bits_per_char = 6) => {
 };
 
 const hilbert_curve = (precision: number, bits_per_char = 6) => {
-  if (precision > 3) {
-    throw new PrecisionError(
-      "Higher precision than 3 not supported right now."
-    );
-  }
+  isCorrectBpc(bits_per_char);
+  assert(precision < 4, "Only precision less than 4 supported right now");
   const bits = precision * bits_per_char;
   const coordinates: [number, number][] = [];
   for (let i = 0; i < 1 << bits; i++) {
@@ -180,19 +182,8 @@ const hilbert_curve = (precision: number, bits_per_char = 6) => {
   };
 };
 
-class PrecisionError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = this.constructor.name;
-    Error.captureStackTrace(this, this.constructor);
-  }
-}
-
-const isOverflowing = (bits: number) => {
-  if (bits > 64) {
-    throw new PrecisionError("Overflow. Reduce 'precision' or 'bits_per_char'");
-  }
-};
+const isOverflowing = (bits: number) => assert(bits < 64, "Over 64 bits not supported. Reduce 'precision' or 'bits_per_char' so their product is <= 64");
+const isCorrectBpc = (bpc: number) => assert(bpc in [2, 4, 6], "bits_per_char must be 2, 4 or 6");
 
 const encode = (
   lng: number,
@@ -200,6 +191,7 @@ const encode = (
   precision = 10,
   bits_per_char = 6
 ) => {
+  isCorrectBpc(bits_per_char);
   const bits = precision * bits_per_char;
   isOverflowing(bits);
   const level = bits >> 1;
