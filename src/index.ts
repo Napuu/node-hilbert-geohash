@@ -9,22 +9,22 @@ const Orderings = {
 
 type OrderingKeys = "UUp" | "ULeft" | "UDown" | "URight";
 
-const xy2hash = (x: number, y: number, dim: number) => {
-  let d = 0;
-  let lvl = dim >> 1;
+const xy2hash = (x: bigint, y: bigint, dim: number) => {
+  let d = 0n;
+  let lvl = BigInt(dim >> 1);
   while (lvl > 0) {
-    let rx = (x & lvl) > 0 ? 1 : 0;
-    let ry = (y & lvl) > 0 ? 1 : 0;
-    d += lvl * lvl * ((3 * rx) ^ ry);
-    const r = rotate(lvl, x, y, rx, ry);
+    let rx = (x & lvl) > 0 ? 1n : 0n;
+    let ry = (y & lvl) > 0 ? 1n : 0n;
+    d += lvl * lvl * ((3n * rx) ^ ry);
+    const r = bigrotate(lvl, x, y, rx, ry);
     x = r.x;
     y = r.y;
-    lvl >>= 1;
+    lvl >>= 1n;
   }
   return d;
 };
 
-const hash2xy = (hashcode: number, dim: number) => {
+const hash2xy = (hashcode: number, dim: bigint) => {
   let x = 0n;
   let y = 0n;
   let lvl = 1n;
@@ -76,12 +76,12 @@ const lvl_error = (level: number) => {
 const decode_exactly = (code: string, bits_per_char = 6) => {
   let bits = code.length * bits_per_char;
   isOverflowing(bits);
-  let level = bits >> 1;
-  let dim = 1 << level;
+  let level = BigInt(bits) >> 1n;
+  let dim = 1n << level;
   let code_int = decode_int(code, bits_per_char);
   const { x, y } = hash2xy(code_int, dim);
-  const { lng, lat } = int2coord(x, y, dim);
-  const err = lvl_error(level);
+  const { lng, lat } = int2coord(x, y, Number(dim));
+  const err = lvl_error(Number(level));
   return {
     lng: lng + err.lng,
     lat: lat + err.lat,
@@ -225,7 +225,7 @@ const encode = (
   const level = bits >> 1;
   const dim = 1 << level;
   const { x, y } = coord2int(lng, lat, dim);
-  const code = xy2hash(x, y, dim);
+  const code = xy2hash(BigInt(x), BigInt(y), dim);
   return encode_int(code, bits_per_char).padStart(precision, "0");
 };
 

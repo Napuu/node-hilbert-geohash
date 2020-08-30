@@ -1,6 +1,7 @@
 const { assert, expect } = require('chai');
 const rewire = require('rewire');
 const { decode, decode_exactly, encode } = require('../lib/index.js');
+const { decode_int, encode_int } = require('../lib/conversion.js');
 const index = rewire('../lib/index.js');
 
 const lvl_error = index.__get__("lvl_error");
@@ -27,11 +28,8 @@ describe('hilbert', function () {
           const lngIn = rand_lng();
           const latIn = rand_lat();
           const code = encode(lngIn, latIn, precision, bpc);
-          //console.log(precision, bpc);
           const { lng, lat, lng_err, lat_err } = decode_exactly(code, bpc);
-
-          //assert(kkkkkkkkkkkkkkkk
-          //expect(lng).be.closeTo(lngIn, Math.abs(lng_err))
+          expect(lng).be.closeTo(lngIn, Math.abs(lng_err))
         }
       }
     }
@@ -61,4 +59,15 @@ describe('hilbert', function () {
 });
 
 
-
+describe('conversion', () => {
+  it('encode/decode with random integers', () => {
+    for (let bpc = 2; bpc <= 6; bpc += 2) {
+      for (let i = 0; i < 100; i++) {
+        const rand = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);;
+        const code = encode_int(rand, bpc);
+        assert(code != rand);
+        assert(rand == decode_int(code, bpc));
+      }
+    }
+  }); 
+});

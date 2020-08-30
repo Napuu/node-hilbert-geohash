@@ -1,6 +1,7 @@
 type BaseNumber = 64 | 16 | 4;
 type Base = "Base64" | "Base16" | "Base4";
 
+
 const IntConversion = {
   // https://stackoverflow.com/questions/6213227/fastest-way-to-convert-a-number-to-radix-64-in-javascript
   Base64:
@@ -23,43 +24,38 @@ const IntConversion = {
   // or going with base-64 representations for the bit pattern of the
   // underlying IEEE floating-point number, or representing the mantissae
   // and exponents separately, or some other possibility. For now, bail
-  fromNumber: function (number: number, base: BaseNumber) {
-    if (
-      isNaN(Number(number)) ||
-      number === null ||
-      number === Number.POSITIVE_INFINITY
-    )
-      throw "The input is not valid";
-    if (number < 0) throw "Can't represent negative numbers now";
+  fromNumber: function (number: bigint, base: BaseNumber) {
+    //if (
+      //isNaN(Number(number)) ||
+      //number == null ||
+      //number == Number.POSITIVE_INFINITY
+    //)
+      //throw "The input is not valid";
+    if (number < 0n) throw "Can't represent negative numbers now";
 
     var rixit; // like 'digit', only in some non-decimal radix
-    var residual = Math.floor(number);
+    var residual = number;
     var result = "";
     while (true) {
-      rixit = residual % base;
-      // console.log("rixit : " + rixit);
-      // console.log("result before : " + result);
+      rixit = Number(BigInt(residual) % BigInt(base));
       result = this[("Base" + base) as Base].charAt(rixit) + result;
-      // console.log("result after : " + result);
-      // console.log("residual before : " + residual);
-      residual = Math.floor(residual / base);
-      // console.log("residual after : " + residual);
+      residual = BigInt(residual) / BigInt(base);
 
-      if (residual == 0) break;
+      if (residual == 0n) break;
     }
     return result;
   },
 
   toNumber: function (string: string, base: BaseNumber) {
-    var result = 0;
+    var result = 0n;
     let chars = string.split("");
     for (var e = 0; e < chars.length; e++) {
-      result = result * base + this[("Base" + base) as Base].indexOf(chars[e]);
+      result = result * BigInt(base) + BigInt(this[("Base" + base) as Base].indexOf(chars[e]));
     }
     return result;
   },
 };
-export const encode_int = (n: number, bits_per_char = 6) => {
+export const encode_int = (n: bigint, bits_per_char = 6) => {
   if (bits_per_char === 6) {
     return encode_int64(n);
   }
@@ -83,13 +79,13 @@ export const decode_int = (n: string, bits_per_char = 6) => {
   }
   return 0;
 };
-const encode_int64 = (n: number) => {
+const encode_int64 = (n: bigint) => {
   return IntConversion.fromNumber(n, 64);
 };
-const encode_int16 = (n: number) => {
+const encode_int16 = (n: bigint) => {
   return IntConversion.fromNumber(n, 16);
 };
-const encode_int4 = (n: number) => {
+const encode_int4 = (n: bigint) => {
   return IntConversion.fromNumber(n, 4);
 };
 const decode_int64 = (n: string) => {
