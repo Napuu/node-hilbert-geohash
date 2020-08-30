@@ -1,5 +1,5 @@
 const { encode_int, decode_int } = require("./conversion");
-const assert = require("assert");
+
 const Orderings = {
   UUp: { UpperRight: 1, LowerRight: 2, LowerLeft: 3, UpperLeft: 4 },
   ULeft: { LowerLeft: 1, LowerRight: 2, UpperRight: 3, UpperLeft: 4 },
@@ -16,7 +16,7 @@ const xy2hash = (x: bigint, y: bigint, dim: number) => {
     let rx = (x & lvl) > 0 ? 1n : 0n;
     let ry = (y & lvl) > 0 ? 1n : 0n;
     d += lvl * lvl * ((3n * rx) ^ ry);
-    const r = bigrotate(lvl, x, y, rx, ry);
+    const r = rotate(lvl, x, y, rx, ry);
     x = r.x;
     y = r.y;
     lvl >>= 1n;
@@ -32,7 +32,7 @@ const hash2xy = (hashcode: number, dim: bigint) => {
   while (lvl < dim) {
     let rx = 1n & (big >> 1n);
     let ry = 1n & (big ^ rx);
-    const r = bigrotate(lvl, x, y, rx, ry);
+    const r = rotate(lvl, x, y, rx, ry);
     x = r.x;
     y = r.y;
     x += lvl * rx;
@@ -43,18 +43,7 @@ const hash2xy = (hashcode: number, dim: bigint) => {
   return { x: Number(x), y: Number(y) };
 };
 
-const rotate = (n: number, x: number, y: number, rx: number, ry: number) => {
-  if (ry == 0) {
-    if (rx == 1) {
-      x = n - 1 - x;
-      y = n - 1 - y;
-    }
-    return { x: y, y: x };
-  }
-  return { x, y };
-};
-
-const bigrotate = (n: bigint, x: bigint, y: bigint, rx: bigint, ry: bigint) => {
+const rotate = (n: bigint, x: bigint, y: bigint, rx: bigint, ry: bigint) => {
   if (ry === 0n) {
     if (rx === 1n) {
       x = n - 1n - x;
