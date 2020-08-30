@@ -1,14 +1,5 @@
 const { encode_int, decode_int } = require("./conversion");
 
-const Orderings = {
-  UUp: { UpperRight: 1, LowerRight: 2, LowerLeft: 3, UpperLeft: 4 },
-  ULeft: { LowerLeft: 1, LowerRight: 2, UpperRight: 3, UpperLeft: 4 },
-  UDown: { LowerLeft: 1, UpperLeft: 2, UpperRight: 3, LowerRight: 4 },
-  URight: { UpperRight: 1, UpperLeft: 2, LowerLeft: 3, LowerRight: 4 },
-};
-
-type OrderingKeys = "UUp" | "ULeft" | "UDown" | "URight";
-
 const xy2hash = (x: bigint, y: bigint, dim: number) => {
   let d = 0n;
   let lvl = BigInt(dim >> 1);
@@ -80,7 +71,7 @@ const decode_exactly = (code: string, bits_per_char = 6) => {
 };
 
 const decode = (code: string, bits_per_char = 6) => {
-  const { lng, lat, lng_err, lat_err } = decode_exactly(code, bits_per_char);
+  const { lng, lat } = decode_exactly(code, bits_per_char);
   return { lng, lat };
 };
 
@@ -176,7 +167,7 @@ const hilbert_curve = (precision: number, bits_per_char = 6) => {
   const coordinates: [number, number][] = [];
   for (let i = 0; i < 1 << bits; i++) {
     const code = encode_int(i, bits_per_char).padStart(precision, "0");
-    const { lng, lat, lng_err, lat_err } = decode_exactly(code, bits_per_char);
+    const { lng, lat } = decode_exactly(code, bits_per_char);
     coordinates.push([lng, lat]);
   }
   return {
@@ -218,4 +209,4 @@ const encode = (
   return encode_int(code, bits_per_char).padStart(precision, "0");
 };
 
-export { encode, decode, decode_exactly, neighbours, hilbert_curve };
+export { encode, decode, decode_exactly, neighbours, hilbert_curve, rectangle };
