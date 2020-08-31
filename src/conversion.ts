@@ -4,7 +4,7 @@ type Base = "Base64" | "Base16" | "Base4";
 const IntConversion = {
   // https://stackoverflow.com/questions/6213227/fastest-way-to-convert-a-number-to-radix-64-in-javascript
   Base64: "0123456789@ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz",
-  Base16: "0123456789ABCDEF",
+  Base16: "0123456789abcdef",
   Base4: "0123",
   fromNumber: function (number: bigint, base: BaseNumber) {
     let residual = number;
